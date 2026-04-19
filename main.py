@@ -170,11 +170,28 @@ def main():
 
     # 🔥 NGROK SETUP
     if mode == "remote":
-        print("\n🌐 Enter your ngrok URL (example: https://abc.ngrok-free.app)\n")
-        url = input("URL: ").strip()
+        print("\n🌐 NGROK REMOTE MODE SETUP")
+        print("=" * 40)
+        print("1. Start ngrok in another terminal:")
+        print("   ngrok http 11434")
+        print("2. Copy the URL it shows (like https://abc-123.ngrok-free.app)")
+        print("3. Paste it below (must start with https://)\n")
 
-        agent.NGROK_URL = url
-        print(f"✅ Connected to: {url}\n")
+        while True:
+            url = input("Enter ngrok URL: ").strip()
+
+            if not url.startswith("https://"):
+                print("❌ URL must start with 'https://'")
+                print("Example: https://abc-123.ngrok-free.app\n")
+                continue
+
+            if "ngrok" not in url.lower():
+                print("❌ URL should contain 'ngrok'. Check your ngrok terminal!\n")
+                continue
+
+            agent.NGROK_URL = url
+            print(f"✅ Connected to: {url}\n")
+            break
 
     while True:
         choice = main_menu()
