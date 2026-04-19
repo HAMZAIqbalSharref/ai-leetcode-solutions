@@ -9,7 +9,7 @@ load_dotenv()
 # ================================
 # 🌐 GLOBAL CONFIG
 # ================================
-NGROK_URL = "https://ventricle-clone-exception.ngrok-free.dev"
+NGROK_URL = ""
 
 HEADERS = {
     "ngrok-skip-browser-warning": "true",
