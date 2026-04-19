@@ -9,7 +9,12 @@ load_dotenv()
 # ================================
 # 🌐 GLOBAL CONFIG
 # ================================
-NGROK_URL = ""
+NGROK_URL = "https://ventricle-clone-exception.ngrok-free.dev"
+
+HEADERS = {
+    "ngrok-skip-browser-warning": "true",
+    "User-Agent": "Mozilla/5.0"
+}
 
 # ================================
 # 🔑 OPENAI (OPTIONAL)
@@ -18,14 +23,6 @@ client = None
 if os.getenv("OPENAI_API_KEY"):
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# ================================
-# 🌐 HEADERS (NGROK FIX)
-# ================================
-HEADERS = {
-    "ngrok-skip-browser-warning": "true",
-    "User-Agent": "Mozilla/5.0",
-    "Accept": "*/*"
-}
 
 # ================================
 # 🤖 GET OLLAMA MODEL
@@ -35,12 +32,13 @@ def get_ollama_model(base_url):
         response = requests.get(
             f"{base_url}/api/tags",
             headers=HEADERS,
-            timeout=10
+            timeout=30
         )
 
+        print("STATUS:", response.status_code)
+        print("RAW TEXT:", response.text[:300])
+
         if response.status_code != 200:
-            print("STATUS:", response.status_code)
-            print("RAW TEXT:", response.text)
             return None
 
         data = response.json()
@@ -60,16 +58,13 @@ def get_ollama_model(base_url):
 
 
 # ================================
-# 🧠 OLLAMA REQUEST (STREAMING)
+# 🧠 OLLAMA REQUEST (STREAM FIX)
 # ================================
 def ollama_request(prompt, base_url):
     try:
         model = get_ollama_model(base_url)
-
         if not model:
-            return "❌ No Ollama model found. Run: ollama pull mistral"
-
-        print("USING MODEL:", model)
+            model = "mistral:latest"
 
         response = requests.post(
             f"{base_url}/api/generate",
@@ -78,7 +73,10 @@ def ollama_request(prompt, base_url):
                 "prompt": prompt,
                 "stream": True
             },
-            headers=HEADERS,
+            headers={
+                "ngrok-skip-browser-warning": "true",
+                "User-Agent": "Mozilla/5.0"
+            },
             timeout=120,
             stream=True
         )
@@ -86,23 +84,20 @@ def ollama_request(prompt, base_url):
         if response.status_code != 200:
             return f"❌ HTTP Error {response.status_code}\n{response.text}"
 
-        # 🔥 STREAMING LOGIC
-        full_response = ""
+        final_text = ""
 
         for line in response.iter_lines():
             if line:
                 try:
-                    chunk = line.decode("utf-8")
-                    data = json.loads(chunk)
-                    full_response += data.get("response", "")
+                    chunk = json.loads(line.decode("utf-8"))
+                    final_text += chunk.get("response", "")
                 except:
                     pass
 
-        return full_response
+        return final_text.strip() if final_text else "❌ Empty response"
 
     except Exception as e:
         return f"❌ Ollama Error: {str(e)}"
-
 
 # ================================
 # 🧠 UNDERSTAND MODE
