@@ -164,6 +164,10 @@ def push_to_github(problem_name, explanation, code):
 # 🔁 MAIN LOOP
 # ================================
 def main():
+    print("\n" + "="*40)
+    print("🤖 AI LeetCode Agent v2.5 (Fixed)")
+    print("="*40 + "\n")
+
     setup_keys()
 
     mode = select_mode()
