@@ -29,6 +29,7 @@ if os.getenv("OPENAI_API_KEY"):
 # ================================
 def get_ollama_model(base_url):
     try:
+        print(f"\n🔍 Attempting to connect to: {base_url}/api/tags")
         response = requests.get(
             f"{base_url}/api/tags",
             headers=HEADERS,
@@ -39,12 +40,14 @@ def get_ollama_model(base_url):
         print("RAW TEXT:", response.text[:300])
 
         if response.status_code != 200:
+            print(f"⚠️ Failed to get models. Status: {response.status_code}")
             return None
 
         data = response.json()
         models = data.get("models")
 
         if not models:
+            print("⚠️ No models found on Ollama instance")
             return None
 
         model_name = models[0].get("name")
@@ -54,6 +57,10 @@ def get_ollama_model(base_url):
 
     except Exception as e:
         print("MODEL ERROR:", e)
+        print("⚠️ Make sure:")
+        print("   1. Ollama is running")
+        print("   2. ngrok tunnel is active (ngrok http 11434)")
+        print("   3. ngrok URL is correct")
         return None
 
 
@@ -73,10 +80,7 @@ def ollama_request(prompt, base_url):
                 "prompt": prompt,
                 "stream": True
             },
-            headers={
-                "ngrok-skip-browser-warning": "true",
-                "User-Agent": "Mozilla/5.0"
-            },
+            headers=HEADERS,
             timeout=120,
             stream=True
         )
